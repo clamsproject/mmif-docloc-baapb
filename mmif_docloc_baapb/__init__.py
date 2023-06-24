@@ -1,8 +1,9 @@
 import requests
 import os
 
-if 'BAAPB_RESOLVER_ADDRESS' in os.environ:
-    RESOLVER_ADDRESS = os.environ['BAAPB_RESOLVER_ADDRESS']
+RESOVLER_ADDRESS_ENVVAR = 'BAAPB_RESOLVER_ADDRESS'
+if RESOVLER_ADDRESS_ENVVAR in os.environ:
+    RESOLVER_ADDRESS = os.environ[RESOVLER_ADDRESS_ENVVAR]
 else:
     RESOLVER_ADDRESS = 'localhost:5000'
 
