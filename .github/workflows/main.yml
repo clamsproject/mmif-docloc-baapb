@@ -1,12 +1,32 @@
 name: "Publisher"
 
 on:
-  push:
-    tags: v**
+  schedule:
+    - cron: "51 23 * * *"
 
 jobs:
+  check-updates:
+    name: "Check recent updates"
+    runs-on: ubuntu-latest
+    outputs:
+      recent: ${{ steps.get_recent.outputs.RECENT }}
+    env:
+      OS: linux
+      PYTHON: "3.8"
+    steps:
+      - name: "Get pushes in the last 24 hours"
+        id: get_recent
+        run: |
+          if ["$(git reflog --since='24 hours ago')" == '']; then 
+            echo "RECENT=false" >> $GITHUB_OUTPUT; 
+          else 
+            echo "RECENT=true" >> $GITHUB_OUTPUT; 
+          fi
+
   build-and-upload:
     name: "Upload documentation, PyPI distribution"
+    needs: [check-updates]
+    if: needs.check-updates.outputs.recent == 'true'
     runs-on: ubuntu-latest
     env:
       OS: linux
