@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: "Prepare package metadata"
         run: |
-          echo "VERSION=$(echo "${{ github.ref_name }}" | cut -dv -f2)" >> $GITHUB_ENV
+          echo "VERSION=$(date +%y%m%d)" >> $GITHUB_ENV
           echo "PACKAGE=$(echo "${{ github.repository }}" | cut -d/ -f2 | tr '-' '_')" >> $GITHUB_ENV
       - name: "Checkout repository"
         uses: actions/checkout@v3
