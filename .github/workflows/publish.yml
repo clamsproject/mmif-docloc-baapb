@@ -1,0 +1,53 @@
+name: "Publisher"
+
+on:
+  schedule:
+    - cron: "51 23 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-updates:
+    name: "Check recent updates"
+    runs-on: ubuntu-latest
+    outputs:
+      recent: ${{ steps.get_recent.outputs.RECENT }}
+    env:
+      OS: linux
+      PYTHON: "3.8"
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Get pushes in the last 24 hours"
+        id: get_recent
+        run: |
+          echo "RECENT=$(git --no-pager log --since='1 days ago' --oneline | wc -l)" >> $GITHUB_OUTPUT
+
+  build-and-upload:
+    name: "Build a PyPI source distribution and upload to PyPI"
+    needs: [check-updates]
+    if: needs.check-updates.outputs.recent != '0'
+    runs-on: ubuntu-latest
+    env:
+      OS: linux
+      PYTHON: "3.8"
+    steps:
+      - name: "Prepare package metadata"
+        run: |
+          echo "VERSION=$(date +%y%m%d)" >> $GITHUB_ENV
+          echo "PACKAGE=$(echo "${{ github.repository }}" | cut -d/ -f2 | tr '-' '_')" >> $GITHUB_ENV
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Setup Python"
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON }}
+      - name: "Build sdist"
+        run: |
+          git tag ${{ env.VERSION }}
+          python -m pip install --upgrade build
+          python -m build
+      - name: "Upload to PyPI"
+        run: |
+          python -m pip install --upgrade twine
+          twine upload -u __token__ -p ${{ secrets.TESTPYPI_TOKEN }} --repository testpypi dist/${{ env.PACKAGE }}-${{ env.VERSION }}.tar.gz
+
