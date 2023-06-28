@@ -3,6 +3,7 @@ name: "Publisher"
 on:
   schedule:
     - cron: "51 23 * * *"
+  workflow_dispatch:
 
 jobs:
   check-updates:
@@ -14,19 +15,17 @@ jobs:
       OS: linux
       PYTHON: "3.8"
     steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
       - name: "Get pushes in the last 24 hours"
         id: get_recent
         run: |
-          if ["$(git reflog --since='24 hours ago')" == '']; then 
-            echo "RECENT=false" >> $GITHUB_OUTPUT; 
-          else 
-            echo "RECENT=true" >> $GITHUB_OUTPUT; 
-          fi
+          echo "RECENT=$(git --no-pager log --since='1 days ago' --oneline | wc -l)" >> $GITHUB_OUTPUT
 
   build-and-upload:
-    name: "Upload documentation, PyPI distribution"
+    name: "Build a PyPI source distribution and upload to PyPI"
     needs: [check-updates]
-    if: needs.check-updates.outputs.recent == 'true'
+    if: needs.check-updates.outputs.recent != '0'
     runs-on: ubuntu-latest
     env:
       OS: linux
@@ -44,9 +43,11 @@ jobs:
           python-version: ${{ env.PYTHON }}
       - name: "Build sdist"
         run: |
+          git tag ${{ env.VERSION }}
           python -m pip install --upgrade build
           python -m build
       - name: "Upload to PyPI"
         run: |
           python -m pip install --upgrade twine
           twine upload -u __token__ -p ${{ secrets.TESTPYPI_TOKEN }} --repository testpypi dist/${{ env.PACKAGE }}-${{ env.VERSION }}.tar.gz
+
