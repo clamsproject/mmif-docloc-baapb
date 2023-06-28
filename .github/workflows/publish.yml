@@ -49,5 +49,5 @@ jobs:
       - name: "Upload to PyPI"
         run: |
           python -m pip install --upgrade twine
-          twine upload -u __token__ -p ${{ secrets.TESTPYPI_TOKEN }} --repository testpypi dist/${{ env.PACKAGE }}-${{ env.VERSION }}.tar.gz
+          twine upload -u __token__ -p ${{ secrets.PYPITOKEN }} dist/${{ env.PACKAGE }}-${{ env.VERSION }}.tar.gz
 
