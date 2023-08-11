@@ -15,7 +15,8 @@ def resolve(docloc):
         url = 'http://' + RESOLVER_ADDRESS + '/searchapi'
         r = requests.get(url, params={'guid': guid, 'file':document_type})
         if 199 < r.status_code < 299:
-            return r.text
+            text = r.text
+            return text.split(", ")[0]
         else:
             raise ValueError(f'cannot resolve document location: "{docloc}", '
                              f'is the resolver running at "{RESOLVER_ADDRESS}"?')
