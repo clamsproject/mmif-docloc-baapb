@@ -15,11 +15,15 @@ def resolve(docloc):
         url = 'http://' + RESOLVER_ADDRESS + '/searchapi'
         r = requests.get(url, params={'guid': guid, 'file':document_type})
         if 199 < r.status_code < 299:
-            text = r.text
-            return text.split(", ")[0]
+            # when there are multiple files with the query guid, just return the first one
+            return r.json()[0]
         else:
             raise ValueError(f'cannot resolve document location: "{docloc}", '
                              f'is the resolver running at "{RESOLVER_ADDRESS}"?')
     else:
         raise ValueError(f'cannot handle document location scheme: "{docloc}"')
+
+if __name__ == '__main__':
+    import sys
+    print(resolve(sys.argv[1]))
 
