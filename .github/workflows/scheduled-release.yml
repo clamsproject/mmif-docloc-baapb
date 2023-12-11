@@ -1,0 +1,15 @@
+name: "Publisher"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "51 23 * * *"
+
+jobs:
+  call-pypi-release:
+    name: "🤙 Call PyPI release workflow"
+    uses: clamsproject/mmif-docloc-baapb/.github/workflows/publish.yml@main
+    with:
+      pypi_dist_name: mmif-docloc-baapb
+    secrets: inherit
+
