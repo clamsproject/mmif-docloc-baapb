@@ -1,4 +1,4 @@
-name: "Publisher"
+name: "📦 Release to PyPI"
 
 on:
   workflow_dispatch:
