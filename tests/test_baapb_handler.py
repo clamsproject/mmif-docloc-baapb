@@ -1,7 +1,7 @@
 import unittest
+import re
 
-
-import mmif_docloc_baapb 
+import mmif_docloc_baapb
 from unittest.mock import patch
 
 CORRECT_FILE_LOC = "wgbh/NJN_Network/cpb-aacip-75-84zgn33s.mp4"
@@ -24,7 +24,8 @@ class TestDocloc(unittest.TestCase):
             mock_get.return_value.json.return_value = []
 
             result = mmif_docloc_baapb.resolve("baapb://cpb-aacip-75-84zgn33s.video")
-        self.assertEqual(result, "/_NOTFOUND_/cpb-aacip-75-84zgn33s.video")
+        # verify it matches the expected pattern with random salt (32 hex chars)
+        self.assertIsNotNone(re.match(r'^/_NOTFOUND_[a-f0-9]{32}/cpb-aacip-75-84zgn33s\.video$', result))
     
     def test_plugged_in(self):
         import mmif
