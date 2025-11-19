@@ -1,5 +1,6 @@
 import requests
 import os
+import secrets
 
 RESOVLER_ADDRESS_ENVVAR = 'BAAPB_RESOLVER_ADDRESS'
 if RESOVLER_ADDRESS_ENVVAR in os.environ:
@@ -16,7 +17,14 @@ def resolve(docloc):
         r = requests.get(url, params={'guid': guid, 'file':document_type})
         if 199 < r.status_code < 299:
             # when there are multiple files with the query guid, just return the first one
-            return r.json()[0]
+            results = r.json()
+            if results:
+                return results[0]
+            else:
+                # return a seemingly valid but non-existent path when no results found
+                # salt with random chars to prevent potential directory traversal attacks
+                salt = secrets.token_hex(16)
+                return f'/_NOTFOUND_{salt}/{guid}.{document_type}'
         else:
             raise ValueError(f'cannot resolve document location: "{docloc}", '
                              f'is the resolver running at "{RESOLVER_ADDRESS}"?')

@@ -1,7 +1,7 @@
 import unittest
+import re
 
-
-import mmif_docloc_baapb 
+import mmif_docloc_baapb
 from unittest.mock import patch
 
 CORRECT_FILE_LOC = "wgbh/NJN_Network/cpb-aacip-75-84zgn33s.mp4"
@@ -12,10 +12,20 @@ class TestDocloc(unittest.TestCase):
         with patch('mmif_docloc_baapb.requests.get') as mock_get:
             mock_get.return_value.ok = True
             mock_get.return_value.status_code = 200
-            mock_get.return_value.text = CORRECT_FILE_LOC
+            mock_get.return_value.json.return_value = [CORRECT_FILE_LOC]
 
             result = mmif_docloc_baapb.resolve("baapb://cpb-aacip-75-84zgn33s.video")
         self.assertEqual(result, CORRECT_FILE_LOC)
+
+    def test_resolve_zero_response(self):
+        with patch('mmif_docloc_baapb.requests.get') as mock_get:
+            mock_get.return_value.ok = True
+            mock_get.return_value.status_code = 200
+            mock_get.return_value.json.return_value = []
+
+            result = mmif_docloc_baapb.resolve("baapb://cpb-aacip-75-84zgn33s.video")
+        # verify it matches the expected pattern with random salt (32 hex chars)
+        self.assertIsNotNone(re.match(r'^/_NOTFOUND_[a-f0-9]{32}/cpb-aacip-75-84zgn33s\.video$', result))
     
     def test_plugged_in(self):
         import mmif
@@ -28,13 +38,13 @@ class TestDocloc(unittest.TestCase):
         with patch('mmif_docloc_baapb.requests.get') as mock_get:
             mock_get.return_value.ok = True
             mock_get.return_value.status_code = 200
-            mock_get.return_value.text = CORRECT_FILE_LOC
-            
+            mock_get.return_value.json.return_value = [CORRECT_FILE_LOC]
+
             new_doc = Document()
             new_doc.id = "d1"
             new_doc.location = 'baapb://cpb-aacip-75-84zgn33s.video'
             round_trip = new_doc.location_path()
-            
+
         self.assertEqual(round_trip, CORRECT_FILE_LOC)
 
 
