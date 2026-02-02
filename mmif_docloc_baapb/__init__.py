@@ -8,8 +8,12 @@ if RESOVLER_ADDRESS_ENVVAR in os.environ:
 else:
     RESOLVER_ADDRESS = 'localhost:5000'
 
+_cache = {}
+
 
 def resolve(docloc):
+    if docloc in _cache:
+        return _cache[docloc]
     scheme = 'baapb'
     if docloc.startswith(f'{scheme}://'):
         guid, document_type = docloc[len(scheme)+3:].rsplit('.', 1)
@@ -19,12 +23,14 @@ def resolve(docloc):
             # when there are multiple files with the query guid, just return the first one
             results = r.json()
             if results:
-                return results[0]
+                path = results[0]
             else:
                 # return a seemingly valid but non-existent path when no results found
                 # salt with random chars to prevent potential directory traversal attacks
                 salt = secrets.token_hex(16)
-                return f'/_NOTFOUND_{salt}/{guid}.{document_type}'
+                path = f'/_NOTFOUND_{salt}/{guid}.{document_type}'
+            _cache[docloc] = path
+            return path
         else:
             raise ValueError(f'cannot resolve document location: "{docloc}", '
                              f'is the resolver running at "{RESOLVER_ADDRESS}"?')
